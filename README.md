@@ -159,4 +159,3 @@ Before making non-trivial backend changes, read:
 - [`CLAUDE.md`](/CLAUDE.md)
 - [`docs/technical-decisions.md`](/docs/technical-decisions.md)
 - [`docs/footguns-and-guardrails.md`](/docs/footguns-and-guardrails.md)
-# event-board-app
