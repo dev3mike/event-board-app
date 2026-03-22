@@ -7,8 +7,6 @@ Event Board is a two-project app:
 - a .NET backend in [`backend/`](/backend) that owns API contracts, business rules, and persistence
 - a Next.js web app in [`webapp/`](/webapp) that owns the user-facing experience on top of that API
 
-When backend and webapp behavior disagree, the backend contract is the source of truth unless the contract is intentionally being changed.
-
 ## What This Project Includes
 
 - ASP.NET Core Web API
