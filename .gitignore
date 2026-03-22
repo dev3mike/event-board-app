@@ -6,3 +6,4 @@ backend/tests/*/bin/
 backend/tests/*/obj/
 backend/src/EventBoard.Api/eventboard_dev.db-shm
 backend/src/EventBoard.Api/eventboard_dev.db-wal
+backend/src/EventBoard.Api/eventboard_dev.db
