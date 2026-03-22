@@ -59,3 +59,33 @@ Guardrail:
 Guardrail:
 
 - treat this as current project behavior, not a universal pattern to copy elsewhere
+
+## Webapp
+
+### Do not replace `updateTag` with `revalidateTag` in Server Actions
+
+The registration Server Action uses `updateTag(tag)` for cache invalidation.
+
+Guardrail:
+
+- do not swap `updateTag` for `revalidateTag(tag)` — the single-argument form is deprecated in Next.js 16
+- do not call `revalidateTag(tag, 'max')` from a Server Action either — that form is intended for Route Handlers
+- `updateTag` is the only correct cache invalidation API inside a Server Action in this version
+
+### Do not throw from Server Actions that use `useActionState`
+
+The `registerForEvent` Server Action returns a `RegistrationActionResult` and never throws.
+
+Guardrail:
+
+- do not refactor the catch block to re-throw errors
+- throwing from a `useActionState`-backed Server Action escalates to the nearest error boundary, destroying form state and giving the user no recovery path for expected errors like `EventFull` or `DuplicateRegistration`
+
+### `API_BASE_URL` must not gain a `NEXT_PUBLIC_` prefix
+
+The backend URL is read only by Server Components and Server Actions.
+
+Guardrail:
+
+- do not add `NEXT_PUBLIC_` to `API_BASE_URL`
+- doing so exposes the backend origin in the browser bundle; there is no legitimate reason to call the API from the client side in this architecture

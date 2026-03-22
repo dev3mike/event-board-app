@@ -76,3 +76,34 @@ Why it matters:
 
 - the registration flow depends on EF/SQLite behavior such as `ExecuteUpdateAsync`, transactions, and unique constraints
 - EF Core InMemory can pass tests that would fail against the real persistence behavior
+
+## Webapp
+
+### `updateTag` instead of `revalidateTag` in Server Actions
+
+Cache invalidation after registration uses `updateTag(tag)` from `next/cache`, not `revalidateTag(tag)`.
+
+Why it matters:
+
+- `revalidateTag` with a single argument is deprecated in Next.js 16
+- `updateTag` is the correct Server Action API for read-your-own-writes cache invalidation: the user sees fresh data on the very next request
+- `revalidateTag` still exists but requires a second `profile` argument (e.g. `'max'`) and is intended for Route Handlers or background revalidation, not Server Actions
+
+### `unstable_retry` in error boundaries
+
+`error.tsx` files expose `unstable_retry` as the retry prop, not `reset`.
+
+Why it matters:
+
+- `reset` still exists but only clears error state without re-fetching data — it does not retry the failed server render
+- `unstable_retry` re-fetches and re-renders the segment; this is the intended recovery path for data-fetching failures
+- Added in Next.js 16.2.0; earlier patterns using `reset` will not trigger a fresh server fetch
+
+### Server Actions return typed results, they do not throw
+
+The `registerForEvent` Server Action catches all errors and returns a `RegistrationActionResult` discriminated union — it never re-throws.
+
+Why it matters:
+
+- throwing from a Server Action used with `useActionState` replaces the form with the nearest error boundary, which loses form state and is the wrong UX for validation/business-rule failures
+- the calling Client Component reads `state.status` and renders inline errors without a page-level error boundary being triggered
