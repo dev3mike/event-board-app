@@ -4,8 +4,7 @@ import { ApiError } from '@/lib/api/errors'
 import { formatEventDate } from '@/lib/utils/dates'
 import { EventStatusBadge } from '@/features/events/components/EventStatusBadge'
 import { CapacityBar } from '@/features/events/components/CapacityBar'
-import { RegistrationForm } from '@/features/registrations/components/RegistrationForm'
-import { AlertBanner } from '@/components/ui/AlertBanner'
+import { EventRegistrationSection } from '@/features/registrations/components/EventRegistrationSection'
 import Link from 'next/link'
 
 type Params = Promise<{ id: string }>
@@ -77,18 +76,11 @@ export default async function EventDetailPage({ params }: { params: Params }) {
       </div>
 
       <div className="rounded-xl border border-white/10 bg-zinc-900/90 p-6">
-        {event.registration_open ? (
-          <RegistrationForm eventId={eventId} />
-        ) : (
-          <AlertBanner
-            variant="info"
-            message={
-              event.is_upcoming
-                ? 'Registration is closed for this event. The deadline has passed.'
-                : 'This event has already taken place.'
-            }
-          />
-        )}
+        <EventRegistrationSection
+          eventId={eventId}
+          registrationOpen={event.registration_open}
+          isUpcoming={event.is_upcoming}
+        />
       </div>
     </div>
   )

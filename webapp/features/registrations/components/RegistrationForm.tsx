@@ -1,26 +1,15 @@
 'use client'
 
-import { useActionState } from 'react'
 import { AlertBanner } from '@/components/ui/AlertBanner'
-import { registerForEvent } from '../actions'
 import { SubmitButton } from './SubmitButton'
-import { RegistrationConfirmation } from './RegistrationConfirmation'
 import type { RegistrationActionResult } from '../types'
 
 type RegistrationFormProps = {
-  eventId: number
+  formAction: (payload: FormData) => void
+  state: RegistrationActionResult
 }
 
-const INITIAL_STATE: RegistrationActionResult = { status: 'idle' }
-
-export function RegistrationForm({ eventId }: RegistrationFormProps) {
-  const boundAction = registerForEvent.bind(null, eventId)
-  const [state, formAction] = useActionState(boundAction, INITIAL_STATE)
-
-  if (state.status === 'success') {
-    return <RegistrationConfirmation confirmation={state.data} />
-  }
-
+export function RegistrationForm({ formAction, state }: RegistrationFormProps) {
   const fieldErrors = state.status === 'error' ? (state.field_errors ?? {}) : {}
 
   return (
