@@ -1,15 +1,22 @@
 # Event Board App
 
-Event Board is a .NET backend for browsing events and creating registrations. The current repository is backend-first: the API, application logic, persistence, and tests all live under [`backend/`](/backend).
+Event Board is a two-project app:
+
+- a .NET backend in [`backend/`](/backend) that owns API contracts, business rules, and persistence
+- a Next.js web app in [`webapp/`](/webapp) that owns the user-facing experience on top of that API
+
+When backend and webapp behavior disagree, the backend contract is the source of truth unless the contract is intentionally being changed.
 
 ## What This Project Includes
 
 - ASP.NET Core Web API
 - Clean/layered backend structure
+- Next.js App Router web app
 - SQLite persistence with EF Core
 - Automatic migrations and seed data on startup
 - Swagger UI outside production
 - xUnit test suite with SQLite-backed persistence tests
+- ESLint-based frontend verification
 
 ## Repository Layout
 
@@ -25,6 +32,12 @@ Event Board is a .NET backend for browsing events and creating registrations. Th
 │   │   └── EventBoard.Infrastructure
 │   └── tests/
 │       └── EventBoard.Tests
+├── webapp/
+│   ├── app/
+│   ├── components/
+│   ├── features/
+│   ├── lib/
+│   └── public/
 ├── docs/
 │   ├── technical-decisions.md
 │   └── footguns-and-guardrails.md
@@ -32,7 +45,7 @@ Event Board is a .NET backend for browsing events and creating registrations. Th
 └── CLAUDE.md
 ```
 
-## Backend Architecture
+## Architecture
 
 The backend follows a layered structure with explicit ownership boundaries:
 
@@ -52,6 +65,17 @@ Api -> Application -> Domain
 Infrastructure -> Application + Domain
 ```
 
+The web app follows a feature-oriented Next.js structure:
+
+- `webapp/app`
+  - routes, layouts, loading/error boundaries, page-level server composition
+- `webapp/features`
+  - feature queries, Server Actions, feature types, feature UI
+- `webapp/components`
+  - shared presentational UI primitives
+- `webapp/lib`
+  - shared API client code and cross-feature utilities
+
 ### Architecture Decisions That Matter
 
 - Controllers stay thin and delegate behavior to services.
@@ -60,6 +84,8 @@ Infrastructure -> Application + Domain
 - The API preserves snake_case JSON and a consistent `ApiErrorDto` error envelope.
 - Time-based logic uses `TimeProvider`.
 - Registration concurrency is resolved at the database write boundary, not by read-then-write checks in controllers or services.
+- The webapp consumes backend contracts and should not silently redefine API semantics in UI-only mapping code.
+- Shared frontend components stay presentation-focused; feature-specific behavior belongs in `webapp/features`.
 
 More detail lives in:
 
@@ -69,11 +95,13 @@ More detail lives in:
 ## Requirements
 
 - .NET SDK 10.0
+- Node.js 20+
+- npm
 - `make` if you want to use the provided backend shortcuts
 
 ## How To Run
 
-From the repository root:
+### Backend
 
 ```bash
 cd backend
@@ -87,6 +115,25 @@ cd backend
 dotnet run --project src/EventBoard.Api
 ```
 
+### Webapp
+
+The webapp reads the backend origin from a server-side `API_BASE_URL` environment variable.
+
+From the repository root:
+
+```bash
+cd webapp
+API_BASE_URL=http://localhost:5153 npm run dev
+```
+
+If your backend starts on a different port, use that origin instead.
+
+### Running Both Together
+
+1. Start the backend from [`backend/`](/backend).
+2. Start the webapp from [`webapp/`](/webapp) with `API_BASE_URL` pointing at the backend.
+3. Open [http://localhost:3000](http://localhost:3000).
+
 ### What Happens On Startup
 
 - EF Core migrations are applied automatically.
@@ -97,10 +144,12 @@ dotnet run --project src/EventBoard.Api
 ### Local Development Defaults
 
 - API project: [`backend/src/EventBoard.Api`](/backend/src/EventBoard.Api)
-- Default development database: [`backend/src/EventBoard.Api/eventboard_dev.db`](/backend/src/EventBoard.Api/eventboard_dev.db)
+- Default development database: `backend/src/EventBoard.Api/eventboard_dev.db` (SQLite file created locally; not committed)
 - Default connection string is configured in:
   - [`backend/src/EventBoard.Api/appsettings.json`](/backend/src/EventBoard.Api/appsettings.json)
   - [`backend/src/EventBoard.Api/appsettings.Development.json`](/backend/src/EventBoard.Api/appsettings.Development.json)
+- Webapp default dev URL: [http://localhost:3000](http://localhost:3000)
+- Webapp API configuration: `API_BASE_URL`
 
 Once the app is running, Swagger is typically available at:
 
@@ -143,6 +192,15 @@ make -C backend test
 
 The test suite uses SQLite-backed tests where real EF Core relational behavior matters, especially around registration writes and concurrency-sensitive persistence behavior.
 
+Run frontend verification with:
+
+```bash
+cd webapp
+npm run lint
+```
+
+If a change touches both projects, run both the backend tests and frontend lint step.
+
 ## API Overview
 
 Current HTTP surface:
@@ -153,7 +211,7 @@ Current HTTP surface:
 
 ## Project Guidance
 
-Before making non-trivial backend changes, read:
+Before making non-trivial changes, read:
 
 - [`AGENTS.md`](/AGENTS.md)
 - [`CLAUDE.md`](/CLAUDE.md)
