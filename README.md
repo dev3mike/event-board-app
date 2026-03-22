@@ -1,3 +1,5 @@
+![Event Board demo](demo.gif)
+
 # Event Board App
 
 Event Board is a two-project app:
