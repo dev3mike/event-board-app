@@ -4,6 +4,7 @@ using EventBoard.Application;
 using EventBoard.Infrastructure;
 using EventBoard.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -46,8 +47,10 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
+    var loggerFactory = scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
+    var seederLogger = loggerFactory.CreateLogger(typeof(DbSeeder).FullName!);
     await db.Database.MigrateAsync();
-    await DbSeeder.SeedAsync(db, timeProvider);
+    await DbSeeder.SeedAsync(db, timeProvider, seederLogger);
 }
 
 app.UseMiddleware<ErrorHandlingMiddleware>();

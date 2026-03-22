@@ -1,12 +1,17 @@
 using EventBoard.Domain.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace EventBoard.Infrastructure.Persistence;
 
 public static class DbSeeder
 {
-    public static async Task SeedAsync(AppDbContext db, TimeProvider timeProvider)
+    public static async Task SeedAsync(AppDbContext db, TimeProvider timeProvider, ILogger logger)
     {
-        if (db.Events.Any()) return;
+        if (db.Events.Any())
+        {
+            logger.LogInformation("Database already seeded");
+            return;
+        }
 
         var now = timeProvider.GetUtcNow().UtcDateTime;
 
@@ -60,6 +65,16 @@ public static class DbSeeder
                 CurrentRegistrations = 37
             },
 
+            // Upcoming — almost full (2 spot left)
+            new() {
+                Title = "API Design Patterns (PRO) - second edition",
+                Description = "Continuation of the API Design Patterns workshop. We'll design a URL shortener, a rate limiter, and a distributed cache — discussing trade-offs at each step. This is a paid workshop.",
+                StartsAt = now.AddDays(6),
+                Location = "Boardroom 3",
+                MaxParticipants = 40,
+                CurrentRegistrations = 38
+            },
+
             // Upcoming — fully booked
             new() {
                 Title = "AI/ML Fundamentals",
@@ -80,6 +95,8 @@ public static class DbSeeder
                 CurrentRegistrations = 18
             },
         };
+
+        logger.LogInformation("Seeding database with {EventCount} sample events", events.Count);
 
         db.Events.AddRange(events);
         await db.SaveChangesAsync();
