@@ -81,6 +81,15 @@ Guardrail:
 - do not refactor the catch block to re-throw errors
 - throwing from a `useActionState`-backed Server Action escalates to the nearest error boundary, destroying form state and giving the user no recovery path for expected errors like `EventFull` or `DuplicateRegistration`
 
+### Registration success state must live above RSC-driven `registration_open`
+
+After a successful registration, `updateTag` refreshes the event; when the last seat is taken, `registration_open` becomes false and the server can re-render before a child `useEffect` runs.
+
+Guardrail:
+
+- keep `useActionState` for registration in a client parent (e.g. `EventRegistrationSection`) and branch on `state.status === 'success'` before branching on `registration_open`
+- do not rely on a child-only callback to lift success into the parent when the parent can swap the form for a “closed” banner on the same navigation
+
 ### `API_BASE_URL` must not gain a `NEXT_PUBLIC_` prefix
 
 The backend URL is read only by Server Components and Server Actions.
